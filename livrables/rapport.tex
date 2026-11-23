@@ -1,0 +1,315 @@
+\documentclass[10.5pt,a4paper]{article}
+\usepackage{fontspec}
+\setmainfont{Liberation Sans}
+\usepackage{needspace}
+\usepackage{booktabs,graphicx,tcolorbox,xcolor,hyperref,geometry,amsmath,float,caption,enumitem,fancyhdr,titlesec,microtype,array,longtable}
+\geometry{a4paper,left=2.2cm,right=2.2cm,top=2.3cm,bottom=2.2cm}
+
+\definecolor{navy}{HTML}{14213D}
+\definecolor{accent}{HTML}{E45756}
+\definecolor{bleu}{HTML}{4C78A8}
+\definecolor{vert}{HTML}{2E8B57}
+\definecolor{gris}{HTML}{6B7280}
+\hypersetup{colorlinks=true,linkcolor=navy,urlcolor=bleu,citecolor=navy}
+
+\newcommand{\var}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\pc}{\,\%}
+
+\titleformat{\section}{\Large\bfseries\color{navy}}{\thesection.}{0.6em}{}[{\color{accent}\titlerule[1.2pt]}]
+\titleformat{\subsection}{\large\bfseries\color{bleu}}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{16pt}{8pt}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+
+\pagestyle{fancy}\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\small\color{gris} F1 : Risque de crédit en Allemagne}
+\fancyhead[R]{\small\color{gris} Imane Sellami · 25007596 · FIN 3}
+\fancyfoot[C]{\small\color{gris}\thepage}
+
+\setlength{\parindent}{0pt}\setlength{\parskip}{5pt}
+\setlist{itemsep=2pt,topsep=3pt,leftmargin=1.3em}
+\captionsetup{font=small,labelfont={bf,color=navy},skip=4pt}
+\renewcommand{\arraystretch}{1.18}
+
+\newtcolorbox{encadre}[1][]{colback=navy!5,colframe=navy!5,boxrule=0pt,arc=3pt,left=8pt,right=8pt,top=5pt,bottom=5pt,#1}
+\newtcolorbox{retenir}{colback=vert!8,colframe=vert!8,boxrule=0pt,arc=3pt,left=8pt,right=8pt,top=5pt,bottom=5pt,
+  before upper={\textbf{\color{vert}À retenir.}\ }}
+
+\begin{document}
+
+% ------------------------------------------------------------ En-tête
+\begin{tcolorbox}[colback=navy,colframe=navy,arc=4pt,left=14pt,right=14pt,top=12pt,bottom=12pt]
+{\color{accent}\bfseries\large F1}\\[2pt]
+{\color{white}\bfseries\fontsize{22}{26}\selectfont Risque de crédit en Allemagne}\\[4pt]
+{\color{white!80!navy}\large Classification binaire à coûts asymétriques : compte rendu du projet}\\[8pt]
+{\color{white}\small\textbf{Imane Sellami} \quad·\quad Code Apogée : 25007596 \quad·\quad Groupe : FIN 3 \quad·\quad S7 FIN \quad·\quad 17/11/2026}\\[2pt]
+{\color{white!70!navy}\small Dépôt GitHub : \href{https://github.com/IMANESELLAMI19/25007596-IMANESELLAMI-FIN3.git}{\color{white!70!navy}github.com/IMANESELLAMI19/25007596-IMANESELLAMI-FIN3}}
+\end{tcolorbox}
+
+% ------------------------------------------------------------ 1
+\section{Sujet et problématique}
+\textbf{Intérêt du sujet.} Une banque doit accorder ou refuser un crédit à partir du profil du client et du prêt. Les erreurs n'ont pas le même prix : accepter un mauvais payeur coûte 5, refuser un bon client coûte 1 (matrice de coûts du jeu UCI). Un modèle qui estime le risque aide la banque, à condition de choisir un seuil de décision adapté à ces coûts.
+
+\textbf{Problématique.} Quels attributs du client et du prêt permettent d'identifier les mauvais risques, et quel seuil de décision minimise le coût total des erreurs quand accepter un mauvais risque coûte cinq fois plus que refuser un bon client~?
+
+\begin{encadre}
+\textbf{Objectif mesurable} (fixé avant les résultats). Métrique principale : coût total sur le jeu de test (mauvais accepté $=5$, bon refusé $=1$). Métrique secondaire : AUC. Références naïves : « tout accepter » et « tout refuser ». Test : 25\pc{} des 1\,000 dossiers, stratifié, graine 42, utilisé une seule fois. Réussite si le coût est inférieur d'au moins \textbf{20\pc{}} à celui de la meilleure référence \textbf{et} si l'AUC est d'au moins \textbf{0,70}.
+\end{encadre}
+
+\textbf{Nature du problème.} Classification binaire (bon ou mauvais risque) avec classes déséquilibrées (70\pc{} / 30\pc{}) et coûts asymétriques : le seuil fait partie de la solution. \textbf{Algorithme principal :} n\textsuperscript{o}~8, régression logistique (probabilité de défaut, coefficients interprétables). La forêt aléatoire (n\textsuperscript{o}~12) est écartée : moins lisible et jeu de seulement 1\,000 lignes.
+
+% ------------------------------------------------------------ 2
+\section{Jeu de données}
+\textbf{Source.} Statlog (German Credit Data), UCI Machine Learning Repository, jeu n\textsuperscript{o}~144, H.~Hofmann (1994) ; \url{https://archive.ics.uci.edu/dataset/144}. \textbf{Licence} CC~BY~4.0, extraction le 12/11/2026. \textbf{Taille} : 1\,000 observations et 23 colonnes, soit 20 variables explicatives (7 numériques, 13 catégorielles), l'identifiant \var{n°} et la cible écrite deux fois (\var{risque} en texte, \var{mauvais_risque} en 0/1). \textbf{Unité d'observation} : un dossier de crédit d'un client d'une banque allemande ; aucune dimension temporelle. \textbf{Cible} : \var{mauvais_risque} (1 $=$ mauvais risque). \textbf{Adéquation} : le jeu décrit le client et le prêt et indique si le crédit a été bien remboursé, donc il permet de répondre à la problématique.
+
+\begin{table}[H]\centering\small
+\caption{Dictionnaire des principales variables.}
+\begin{tabular}{@{}l p{6.4cm} l l@{}}
+\toprule
+\textbf{Variable} & \textbf{Description} & \textbf{Type} & \textbf{Unité}\\\midrule
+\var{mauvais_risque} & 1 si mauvais risque, 0 si bon (\emph{cible}) & numérique 0/1 & sans unité\\
+\var{duree_mois} & durée du crédit & numérique & mois\\
+\var{montant} & montant du crédit & numérique & DM (marks)\\
+\var{age} & âge du client & numérique & années\\
+\var{taux_mensualite} & poids de la mensualité dans le revenu & ordinal (1 à 4) & échelle\\
+\var{statut_compte} & situation du compte courant & catégorielle (4) & DM\\
+\var{historique_credit} & historique de remboursement & catégorielle (5) & ---\\
+\var{epargne} & niveau d'épargne & catégorielle (5) & DM\\
+\var{n°}, \var{risque} & identifiant ; cible en texte (\emph{exclues du modèle}) & --- & ---\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Limites.} Données de 1994 en marks allemands ; seulement 1\,000 dossiers dont 300 mauvais risques ; classes déséquilibrées ; biais de sélection possible (on n'observe que les clients ayant obtenu un crédit) ; variables sensibles (\var{statut_personnel}, \var{age}, \var{travailleur_etranger}) ; matrice de coûts supposée.
+
+% ------------------------------------------------------------ 3
+\section{Exploration}
+\textbf{Statistiques utiles.} Durée : moyenne 20,9 mois, médiane 18, maximum 72. Montant : moyenne 3\,271 DM, médiane 2\,319,5, maximum 18\,424. Âge : 19 à 75 ans, moyenne 35,5. La moyenne de \var{mauvais_risque} est 0,30.
+
+\textbf{Qualité des données.} Aucune valeur manquante, aucun doublon : rien à imputer ni à supprimer. Les valeurs atypiques sont détectées par la règle de l'IQR (hors de $[Q_1-1{,}5\,\mathrm{IQR}\,;\,Q_3+1{,}5\,\mathrm{IQR}]$).
+
+\begin{table}[H]\centering\small
+\caption{Valeurs atypiques détectées (règle de l'IQR).}
+\begin{tabular}{@{}l c c c@{}}
+\toprule
+\textbf{Variable} & \textbf{Bornes} & \textbf{Maximum} & \textbf{Atypiques}\\\midrule
+\var{duree_mois} & $[-6\,;\,42]$ & 72 mois & 70\\
+\var{montant} & $[-2\,545\,;\,7\,882]$ & 18\,424 DM & 72\\
+\var{age} & $[4\,;\,64]$ & 75 ans & 23\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Décision : je les conserve.} Un crédit de 72 mois, un gros montant ou un client âgé sont des dossiers réels et non des erreurs de saisie. Les supprimer fausserait la population rencontrée par la banque. Leur influence est limitée par la standardisation des variables numériques.
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.5\textwidth]{figs/c17.png}
+\caption{Répartition des bons et des mauvais risques.}
+\end{figure}
+\textbf{Interprétation.} 700 bons risques (70\pc) contre 300 mauvais (30\pc{}) : un modèle qui accepterait tout aurait 70\pc{} d'exactitude sans rien apprendre. L'exactitude est donc trompeuse ; j'utilise le coût total et l'AUC, avec un découpage stratifié.
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.95\textwidth]{figs/c19.png}
+\caption{Durée (mois) et montant (DM) du crédit selon le risque.}
+\end{figure}
+\textbf{Interprétation.} Les mauvais risques ont des crédits plus longs (médiane 24 mois contre 18) et plus élevés (2\,574,5 DM contre 2\,244). La durée semble plus discriminante que le montant, dont les distributions se chevauchent beaucoup. C'est une association, pas une preuve de causalité.
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.8\textwidth]{figs/c21.png}
+\caption{Part de mauvais risques selon le statut du compte courant.}
+\end{figure}
+\textbf{Interprétation.} La part de mauvais risques passe de 49\pc{} (compte $<0$ DM) à 39\pc{} (0 à 200 DM), 22\pc{} ($\geq 200$ DM) et seulement 12\pc{} sans compte courant (moyenne : 30\pc). \var{statut_compte} sépare donc bien les clients. Le faible taux sans compte courant est surprenant : je constate une association, sans en déduire de cause.
+
+% ------------------------------------------------------------ 4
+\section{Préparation}
+\begin{itemize}
+\item \textbf{Fuite de données évitée.} J'exclus de $X$ l'identifiant \var{n°} et les deux écritures de la cible (\var{risque}, \var{mauvais_risque}). Restent 20 variables explicatives : 7 numériques et 13 catégorielles.
+\item \textbf{Découpage.} 75\pc{} apprentissage (750 dossiers) et 25\pc{} test (250), stratifié sur la cible (30\pc{} de mauvais risques dans chaque jeu), graine 42. Les dossiers ne sont pas datés, donc un découpage aléatoire est acceptable. Le test n'est utilisé qu'une fois.
+\item \textbf{Mise à l'échelle.} Les 7 variables numériques sont standardisées (moyenne 0, écart-type 1) : la régression logistique pénalisée y est sensible, et sans elle \var{montant} (jusqu'à 18\,424 DM) dominerait \var{taux_mensualite} (de 1 à 4).
+\item \textbf{Encodage.} Les 13 variables catégorielles sont encodées en one-hot ; l'ensemble donne \textbf{61 colonnes}.
+\item \textbf{Pas de fuite.} Standardisation et encodage sont ajustés (\texttt{fit}) sur l'apprentissage seulement, puis appliqués (\texttt{transform}) au test. Pour la modélisation, ils sont placés dans un \texttt{Pipeline} avec le modèle, réajusté dans chaque pli de validation croisée.
+\end{itemize}
+
+% ------------------------------------------------------------ 5
+\section{Algorithme}
+\textbf{Régression logistique (n\textsuperscript{o}~8).} Le modèle calcule un score linéaire puis le transforme en probabilité de défaut :
+\[
+z = b + w_1x_1 + \dots + w_p x_p,\qquad P(y=1\mid x)=\frac{1}{1+e^{-z}}
+\]
+où $x$ désigne les variables du dossier après préparation ($p=61$), $w_j$ le coefficient de la variable $j$, $b$ l'intercept et $y=1$ un mauvais risque. Les paramètres $b$ et $w$ sont \emph{appris} en minimisant la perte logarithmique avec une pénalité $L_2$ : un coefficient positif augmente la probabilité de défaut, un coefficient négatif la diminue.
+
+\textbf{Hyperparamètres} (fixés, non appris). $C$ est l'inverse de la force de régularisation : petit, il donne un modèle simple (risque de sous-apprentissage) ; grand, un modèle flexible (risque de surapprentissage). C'est l'hyperparamètre que je règle. Le \textbf{seuil} $s$ n'est pas appris : le dossier est refusé si $P(y=1\mid x)\geq s$, et je le choisis selon la matrice de coûts.
+
+\textbf{Seuil théorique.} Accepter coûte $5P$ (en espérance), refuser coûte $1-P$. On refuse donc dès que $1-P<5P$, soit $P>1/6\approx 0{,}17$. Ce seuil n'est exact que si les probabilités sont bien calibrées ; je le vérifie en validation.
+
+\textbf{Raisons du choix.} Le modèle fournit une probabilité (indispensable pour régler le seuil), ses coefficients sont lisibles par un banquier, et il est peu sujet au surapprentissage sur 1\,000 lignes.
+
+% ------------------------------------------------------------ 6
+\section{Protocole expérimental}
+\begin{itemize}
+\item \textbf{Découpage} : 750 dossiers d'apprentissage, 250 de test (stratifié, graine 42).
+\item \textbf{Références naïves} : « tout accepter » et « tout refuser ». La meilleure est celle que le modèle doit battre.
+\item \textbf{Validation} : validation croisée stratifiée à 5 plis sur l'apprentissage ; le pipeline est réajusté dans chaque pli.
+\item \textbf{Réglage} : $C\in\{0{,}003;\,0{,}01;\,0{,}03;\,0{,}1;\,0{,}3;\,1\}$, soit 6 configurations, critère AUC moyenne en validation (indépendante du seuil).
+\item \textbf{Seuil} : choisi en minimisant le coût sur les probabilités prédites hors pli (\emph{out-of-fold}), jamais sur le test.
+\item \textbf{Métriques} : principale, coût $=5\times$ mauvais acceptés $+\,1\times$ bons refusés ; secondaire, AUC. L'exactitude est écartée (70\pc{} de bons clients).
+\item \textbf{Incertitude} : moyenne et écart-type sur les 5 plis, puis stabilité sur 10 graines de découpage.
+\end{itemize}
+
+% ------------------------------------------------------------ 7
+\section{Résultats}
+\subsection{Références, réglage de $C$ et choix du seuil}
+Sur l'apprentissage, « tout accepter » coûte 1\,125 (225 mauvais risques $\times5$) et « tout refuser » 525 : la meilleure référence est « tout refuser ».
+
+\begin{table}[H]\centering\small
+\caption{Réglage de $C$ (validation croisée à 5 plis, 750 dossiers).}
+\begin{tabular}{@{}c c c c@{}}
+\toprule
+$C$ & AUC apprentissage & AUC validation (moy.) & Écart-type\\\midrule
+0,003 & 0,785 & 0,754 & 0,007\\
+0,01 & 0,806 & 0,769 & 0,007\\
+\textbf{0,03} & \textbf{0,820} & \textbf{0,777} & \textbf{0,017}\\
+0,1 & 0,830 & 0,776 & 0,023\\
+0,3 & 0,837 & 0,772 & 0,029\\
+1 & 0,840 & 0,765 & 0,036\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.62\textwidth]{figs/c33.png}
+\caption{Courbe de validation : AUC selon $C$.}
+\end{figure}
+\textbf{Interprétation.} L'AUC d'apprentissage croît avec $C$ alors que l'AUC de validation plafonne à $C=0{,}03$ puis baisse : au-delà, le modèle surapprend. Je retiens $C=0{,}03$ (6 configurations essayées, test non utilisé).
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.62\textwidth]{figs/c34.png}
+\caption{Coût total en validation selon le seuil de décision.}
+\end{figure}
+\textbf{Interprétation.} Le coût en validation est minimal pour un seuil de \textbf{0,20} : 385, contre 525 pour « tout refuser » (environ 27\pc{} de moins). C'est proche du seuil théorique $1/6\approx0{,}17$, donc les probabilités sont à peu près bien calibrées. Sur les 5 plis, le coût moyen est de 77,0 $\pm$ 3,0 et l'AUC de 0,777 $\pm$ 0,017 : le résultat varie d'un pli à l'autre.
+
+\subsection{Résultats sur le jeu de test}
+\begin{table}[H]\centering\small
+\caption{Modèle contre références.}
+\begin{tabular}{@{}l c c c c@{}}
+\toprule
+ & \textbf{Coût val.} (750) & \textbf{Coût test} (250) & \textbf{AUC val.} & \textbf{AUC test}\\\midrule
+Tout accepter & 1\,125 & 375 & 0,500 & 0,500\\
+Tout refuser & 525 & 175 & 0,500 & 0,500\\
+\textbf{Régression logistique} ($C=0{,}03$, $s=0{,}20$) & \textbf{385} & \textbf{139} & \textbf{0,777} & \textbf{0,811}\\
+\bottomrule
+\end{tabular}
+\end{table}
+Le modèle coûte 139 contre 175 pour « tout refuser », soit un \textbf{gain de 20,6\pc}. L'objectif de 20\pc{} est atteint \emph{de très peu} : le seuil correspondait à un coût de 140, et un seul dossier mal classé de plus l'aurait manqué. L'AUC test (0,811) dépasse 0,70 ; elle est supérieure à l'AUC de validation (0,777), mais l'écart-type des plis (environ 0,02) rend cette différence compatible avec le hasard.
+
+\subsection{Analyse des erreurs}
+\begin{figure}[H]\centering
+\includegraphics[width=0.5\textwidth]{figs/c38.png}
+\caption{Matrice de confusion sur le test (seuil 0,20).}
+\end{figure}
+Au seuil de 0,20, le modèle refuse 166 dossiers sur 250 (66\pc) et détecte 67 des 75 mauvais risques (89\pc). Il commet 8 erreurs coûteuses (mauvais acceptés : $8\times5=40$) et 99 erreurs peu coûteuses (bons refusés : $99\times1=99$), soit un coût de 139. Le modèle est très prudent, ce qui est logique avec des coûts de 5 contre 1. À titre de comparaison, le seuil usuel de 0,5 ne refuse que 8 bons clients mais accepte 49 mauvais risques, pour un coût de \textbf{253}, pire que « tout refuser » (175).
+
+Les 8 mauvais risques acceptés ont une probabilité de défaut entre 0,12 et 0,19, juste sous le seuil, et la plupart n'ont pas de compte courant, modalité la moins risquée du jeu : le modèle se trompe sur des profils qui paraissent sûrs.
+
+\begin{table}[H]\centering\small
+\caption{Quatre dossiers du test illustrant les quatre issues possibles.}
+\begin{tabular}{@{}c l c c c c l@{}}
+\toprule
+\textbf{Dossier} & \textbf{Statut du compte} & \textbf{Durée} & \textbf{Montant} & \textbf{Âge} & $\mathbf{P}$ & \textbf{Issue}\\\midrule
+681 & pas de compte courant & 12 & 2\,279 & 37 & 0,12 & bon accepté (juste)\\
+455 & pas de compte courant & 24 & 2\,679 & 29 & 0,33 & bon refusé (erreur à 1)\\
+522 & $<0$ DM & 48 & 7\,119 & 53 & 0,70 & mauvais refusé (juste)\\
+412 & pas de compte courant & 12 & 2\,292 & 42 & 0,17 & mauvais accepté (erreur à 5)\\
+\bottomrule
+\end{tabular}
+\end{table}
+Les dossiers 412 et 681 se ressemblent (même durée, même montant, pas de compte courant) mais ont des issues opposées : le modèle ne sait pas les distinguer, ce qui illustre sa limite.
+
+\subsection{Variables les plus influentes}
+\begin{figure}[H]\centering
+\includegraphics[width=0.82\textwidth]{figs/c40.png}
+\caption{Coefficients les plus extrêmes de la régression logistique ($C=0{,}03$).}
+\end{figure}
+\textbf{Interprétation.} Les coefficients confirment l'exploration : le risque augmente avec un compte à solde négatif ($+0{,}38$), une épargne inférieure à 100 DM ($+0{,}33$), une durée plus longue ($+0{,}26$) et un taux de mensualité plus élevé ($+0{,}22$). L'absence de compte courant a le coefficient le plus négatif ($-0{,}52$) et l'historique « compte critique / crédits ailleurs » aussi ($-0{,}32$), ce qui est contre-intuitif. Ce sont des associations dans des données de 1994, pas des causes ; avec la régularisation et la corrélation entre variables, ces coefficients donnent un ordre de grandeur.
+
+\subsection{Surapprentissage et stabilité}
+L'AUC d'apprentissage (0,817) est quasi égale à l'AUC de test (0,811) : pas de surapprentissage visible. J'ai ensuite refait toute la démarche (découpage, choix de $C$, choix du seuil, évaluation) avec 10 graines, dont la 42. Les 9 essais supplémentaires ne servent pas à choisir le modèle, seulement à mesurer la robustesse.
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.78\textwidth]{figs/c45.png}
+\caption{Gain de coût sur le test selon la graine de découpage.}
+\end{figure}
+
+\begin{table}[H]\centering\small
+\caption{Stabilité sur 10 graines de découpage.}
+\begin{tabular}{@{}c c c c c c c@{}}
+\toprule
+\textbf{Graine} & $C$ & \textbf{Seuil} & \textbf{Coût test} & \textbf{Meilleure réf.} & \textbf{Gain (\pc)} & \textbf{AUC test}\\\midrule
+42 & 0,03 & 0,20 & 139 & 175 & 20,6 & 0,811\\
+0 & 0,10 & 0,20 & 131 & 175 & 25,1 & 0,800\\
+1 & 0,30 & 0,12 & 127 & 175 & 27,4 & 0,805\\
+2 & 0,10 & 0,20 & 141 & 175 & 19,4 & 0,763\\
+3 & 0,10 & 0,15 & 137 & 175 & 21,7 & 0,797\\
+4 & 0,10 & 0,17 & 147 & 175 & 16,0 & 0,801\\
+5 & 0,03 & 0,21 & 149 & 175 & 14,9 & 0,763\\
+6 & 0,10 & 0,26 & 152 & 175 & 13,1 & 0,809\\
+7 & 0,10 & 0,23 & 131 & 175 & 25,1 & 0,810\\
+8 & 0,30 & 0,21 & 178 & 175 & $-1{,}7$ & 0,729\\\midrule
+\textbf{Moyenne} & & & 143,2 & & 18,2 & 0,79\\
+\textbf{Écart-type} & & & 14,8 & & 8,4 & 0,03\\
+\bottomrule
+\end{tabular}
+\end{table}
+\textbf{Interprétation.} L'AUC test reste au-dessus de 0,70 dans les 10 cas (moyenne $0{,}79\pm0{,}03$) : la capacité à classer les dossiers est stable. Le gain de coût est en revanche instable : $18{,}2\pm8{,}4$ points en moyenne, de $-1{,}7\pc{}$ à $+27{,}4\pc$, et l'objectif de 20\pc{} n'est atteint que dans \textbf{5 cas sur 10}. Le résultat de la graine 42 (20,6\pc) est dans le haut de la fourchette et ne doit pas être surinterprété. Le $C$ retenu varie de 0,03 à 0,30 et le seuil de 0,12 à 0,26 : ces choix sont peu précis avec 750 dossiers d'apprentissage.
+
+\begin{retenir}
+Le modèle classe bien les dossiers (AUC stable autour de 0,8) et réduit le coût par rapport à une règle naïve, mais le gain de coût est modeste et incertain.
+\end{retenir}
+
+% ------------------------------------------------------------ 8
+\section{Analyse critique}
+\begin{itemize}
+\item \textbf{Données anciennes et peu nombreuses} : 1\,000 dossiers de 1994 en marks allemands (300 mauvais risques). Les résultats ne se transposent pas tels quels à un portefeuille actuel et l'incertitude est forte.
+\item \textbf{Évaluation instable} : avec 250 dossiers de test, le gain varie de $-1{,}7\pc{}$ à $+27{,}4\pc{}$ selon la graine ; le résultat de la graine 42 n'est qu'une estimation parmi d'autres.
+\item \textbf{Biais de sélection} : seuls les clients ayant reçu un crédit sont observés ; le modèle n'a jamais vu les dossiers refusés par la banque.
+\item \textbf{Matrice de coûts supposée} : le rapport 5 contre 1 vient du jeu UCI et détermine entièrement le seuil.
+\item \textbf{Politique peu réaliste} : 66\pc{} de refus au seuil de 0,20 ; une banque perdrait des clients et des intérêts, ce que le coût de 1 ne mesure pas.
+\item \textbf{Variables sensibles} : \var{age}, \var{statut_personnel} et \var{travailleur_etranger} figurent dans le modèle ; les utiliser pour décider d'un crédit poserait un risque de discrimination.
+\end{itemize}
+\textbf{Pistes d'amélioration concrètes.} (1) Évaluer par validation croisée répétée ou bootstrap pour obtenir un intervalle sur le coût. (2) Vérifier la calibration des probabilités (\texttt{CalibratedClassifierCV}) avant d'utiliser le seuil théorique $1/6$. (3) Comparer avec une forêt aléatoire ou un gradient boosting. (4) Retirer les variables sensibles et mesurer la perte de performance. (5) Tester d'autres rapports de coûts.
+
+% ------------------------------------------------------------ 9
+\Needspace{12\baselineskip}
+\section{Conclusion}
+\begin{encadre}
+La régression logistique classe les dossiers de façon stable (AUC test 0,811, au moins 0,70 dans les 10 découpages) et les variables les plus liées au risque sont le solde du compte courant, l'épargne, la durée et le taux de mensualité. Le seuil qui minimise le coût est proche de 0,20, voisin du seuil théorique $1/6$. Sur le test (graine 42), le coût est de 139 contre 175 pour « tout refuser », soit un gain de 20,6\pc{} : l'objectif de 20\pc{} est atteint \emph{de justesse}, et seulement dans 5 découpages sur 10 (gain moyen 18,2\pc). \textbf{Réponse à la problématique :} oui, un seuil abaissé réduit le coût par rapport aux règles naïves, mais le gain est modeste et incertain avec ce jeu de 1\,000 dossiers.
+\end{encadre}
+
+% ------------------------------------------------------------ 10
+\section{Références et reproduction}
+\textbf{Références.}
+\begin{itemize}
+\item Hofmann, H. (1994). \emph{Statlog (German Credit Data)}. UCI Machine Learning Repository, jeu n\textsuperscript{o}~144. \url{https://archive.ics.uci.edu/dataset/144} (CC~BY~4.0, extraction du 12/11/2026).
+\item Documentation de scikit-learn : \texttt{LogisticRegression}, \texttt{Pipeline}, \texttt{ColumnTransformer}, \texttt{GridSearchCV}, \texttt{StratifiedKFold}, \texttt{cross\_val\_predict}. \url{https://scikit-learn.org/stable/}
+\item Support de cours \texttt{Tp\_ML.ipynb} (algorithme n\textsuperscript{o}~8) et énoncé de l'épreuve (sujet F1).
+\end{itemize}
+\textbf{Reproduction.}
+\begin{enumerate}
+\item Cloner le dépôt : \url{https://github.com/IMANESELLAMI19/25007596-IMANESELLAMI-FIN3.git}
+\item Installer les dépendances : \texttt{pip install -r requirements.txt} (Python 3.10 ou plus récent ; versions utilisées : Python 3.13.18, pandas 2.2.3, numpy 2.4.6, scikit-learn 1.6.1).
+\item Ouvrir \texttt{notebooks/projet\_F1.ipynb} puis « Redémarrer et tout exécuter ». Les données sont dans \texttt{data/raw/} et la graine est fixée à 42 (la section~7 utilise en plus les graines 0 à 8 pour la stabilité).
+\end{enumerate}
+
+% ------------------------------------------------------------ IA
+\section*{Déclaration des ressources et outils d'IA}
+\begin{center}\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}p{2cm} >{\raggedright\arraybackslash}p{4.4cm} >{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{3.2cm}@{}}
+\toprule
+\textbf{Outil ou ressource} & \textbf{Date} & \textbf{Usage précis} & \textbf{Parties concernées} & \textbf{Vérification effectuée}\\\midrule
+Claude (Anthropic) & novembre 2026 & Mise en forme de la présentation, d'une vidéo explicative et de ce rapport à partir des résultats du notebook & \texttt{presentation/}, \texttt{rapport/} & Chiffres comparés aux sorties du notebook ; texte relu\\
+Documentation scikit-learn & consultée en séance & Syntaxe des fonctions du pipeline et de la validation croisée & Notebook, sections 4 à 6 & Sorties vérifiées\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}
